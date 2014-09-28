@@ -1,0 +1,121 @@
+#include "ch.h"
+#include "hal.h"
+#include "test.h"
+ 
+static int check=0;
+ 
+/*
+ * This is a periodic thread that does absolutely nothing except flashing LEDs.
+ */
+static WORKING_AREA(waThread1, 128);
+static msg_t Thread1(void *arg) {
+ 
+  (void)arg;
+  chRegSetThreadName("blinker");
+  int i=0;
+  int ledTime[10]={215,260,220,600,40,20,10,5,15,25};
+  while (TRUE) {
+ 
+    /* pseudo random generator */
+    if(i%9 ==0)
+      i=0;
+    palSetPad(GPIOE, GPIOE_LED3_RED);
+    check=1;
+    chThdSleepMilliseconds(ledTime[i]);
+    i++;
+    palClearPad(GPIOE, GPIOE_LED3_RED);
+    check=0;
+    palSetPad(GPIOE, GPIOE_LED5_ORANGE);
+    chThdSleepMilliseconds(125);
+    palClearPad(GPIOE, GPIOE_LED5_ORANGE);
+    palSetPad(GPIOE, GPIOE_LED7_GREEN);
+    chThdSleepMilliseconds(125);
+    palClearPad(GPIOE, GPIOE_LED7_GREEN);
+    palSetPad(GPIOE, GPIOE_LED9_BLUE);
+    chThdSleepMilliseconds(125);
+    palClearPad(GPIOE, GPIOE_LED9_BLUE);
+    palSetPad(GPIOE, GPIOE_LED10_RED);
+    chThdSleepMilliseconds(125);
+    palClearPad(GPIOE, GPIOE_LED10_RED);
+    palSetPad(GPIOE, GPIOE_LED8_ORANGE);
+    chThdSleepMilliseconds(125);
+    palClearPad(GPIOE, GPIOE_LED8_ORANGE);
+    palSetPad(GPIOE, GPIOE_LED6_GREEN);
+    chThdSleepMilliseconds(125);
+    palClearPad(GPIOE, GPIOE_LED6_GREEN);
+    palSetPad(GPIOE, GPIOE_LED4_BLUE);
+    chThdSleepMilliseconds(125);
+    palClearPad(GPIOE, GPIOE_LED4_BLUE);
+ 
+  }
+}
+ 
+static WORKING_AREA(waThread2, 128);
+ 
+static msg_t Thread2(void *arg) {
+ 
+  (void)arg;
+    chRegSetThreadName("allLed");
+ 
+    if(check){
+    palSetPad(GPIOE, GPIOE_LED3_RED);
+    palSetPad(GPIOE, GPIOE_LED5_ORANGE);
+    palSetPad(GPIOE, GPIOE_LED7_GREEN);
+    palSetPad(GPIOE, GPIOE_LED9_BLUE);
+    palSetPad(GPIOE, GPIOE_LED10_RED);
+    palSetPad(GPIOE, GPIOE_LED8_ORANGE);
+    palSetPad(GPIOE, GPIOE_LED6_GREEN);
+    palSetPad(GPIOE, GPIOE_LED4_BLUE);
+ 
+    }
+}
+/*
+ * Application entry point.
+ */
+int main(void) {
+ 
+  /*
+   * System initializations.
+   * - HAL initialization, this also initializes the configured device drivers
+   *   and performs the board-specific initializations.
+   * - Kernel initialization, the main() function becomes a thread and the
+   *   RTOS is active.
+   */
+ 
+  //palSetPad(GPIOE, GPIOE_LED3_RED);
+ 
+  halInit();
+  chSysInit();
+ 
+  //palSetPad(GPIOE, GPIOE_LED3_RED);
+ 
+  /*
+   * Activates the serial driver 1 using the driver default configuration.
+   * PA9(TX) and PA10(RX) are routed to USART1.
+   */
+  sdStart(&SD1, NULL);
+  palSetPadMode(GPIOA, 9, PAL_MODE_ALTERNATE(7));
+  palSetPadMode(GPIOA, 10, PAL_MODE_ALTERNATE(7));
+ 
+  //palSetPad(GPIOE, GPIOE_LED3_RED);
+ 
+  /*
+   * Creates the example thread.
+   */
+  chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
+ 
+  //palSetPad(GPIOE, GPIOE_LED3_RED);
+ 
+  /*
+   * Normal main() thread activity, in this demo it does nothing except
+   * sleeping in a loop and check the button state, when the button is
+   * pressed the test procedure is launched.
+   */
+  while (TRUE) {
+    if (palReadPad(GPIOA, GPIOA_BUTTON)){
+      chThdCreateStatic(waThread2, sizeof(waThread2), NORMALPRIO, Thread2, NULL);
+      chThdSleepMilliseconds(500);
+    }
+  }
+}
+- See more at: http://www.vitadastudente.it/#sthash.UgsqbX4A.dpuf
